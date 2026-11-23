@@ -1,0 +1,39 @@
+{
+  "id": "ir2-companion",
+  "name": "Ir2 Companion",
+  "version": "0.1.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["ndefeudis"],
+  "license": "AGPL-3.0",
+  "description": "Lets the Ir2 iPhone app change this car's look from the phone, over the car's own Wi-Fi: the ambient light now, more to come. Pair a phone from the Ir2 Companion tile. Nothing listens beyond the car's Wi-Fi, and every request is signed with a key only the paired phone has.",
+  "repo": "https://github.com/ndefeudis/Ir2",
+  "system": [
+    { "model": ["NEEV", "NEEV23", "NEEV23SE"], "region": "USA", "firmware": "260507" }
+  ],
+  "apps": [
+    { "apk": "app/Ir2Companion.apk", "package": "dev.ir2.companion" }
+  ],
+  "provides": {
+    "launcher": [{ "package": "dev.ir2.companion", "class": ".PairActivity" }]
+  },
+  "services": [
+    {
+      "name": "bridge",
+      "jar": "svc/ir2-bridge.jar",
+      "class": "dev.ir2.companion.CompanionService",
+      "args": ["/data/data/dev.ir2.companion/files"],
+      "user": "app:dev.ir2.companion",
+      "start": "android",
+      "restart": true
+    }
+  ],
+  "vehicle": {
+    "read": ["gear.park"],
+    "commands": ["ambient_light"]
+  },
+  "network": {
+    "rules": [
+      { "chain": "input", "in": "hotspot", "proto": "tcp", "ports": [47115], "action": "accept" }
+    ]
+  }
+}

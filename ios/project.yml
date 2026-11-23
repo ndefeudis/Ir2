@@ -1,0 +1,49 @@
+# The Xcode project, generated: brew install xcodegen && cd ios && xcodegen
+name: Ir2
+options:
+  bundleIdPrefix: dev.ir2
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # set your team here, or pick it in Xcode's Signing & Capabilities
+    DEVELOPMENT_TEAM: ""
+packages:
+  Ir2Kit:
+    path: Ir2Kit
+targets:
+  Ir2:
+    type: application
+    platform: iOS
+    sources:
+      - path: Ir2
+    dependencies:
+      - package: Ir2Kit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.ir2.companion
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+    info:
+      # written by xcodegen (with the standard keys); edit here, not there
+      path: Ir2/Info.plist
+      properties:
+        CFBundleDisplayName: Ir2
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSLocalNetworkUsageDescription: "Ir2 talks to your car's head unit over the car's Wi-Fi to change its look."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+schemes:
+  Ir2:
+    build:
+      targets:
+        Ir2: all
+    test:
+      targets: []

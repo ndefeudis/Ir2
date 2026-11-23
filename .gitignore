@@ -1,0 +1,11 @@
+out/
+bridge/.cache/
+bridge/.keys/
+__pycache__/
+*.pyc
+.DS_Store
+ios/*.xcodeproj/
+ios/.build/
+ios/Ir2Kit/.build/
+xcuserdata/
+ios/Ir2/Info.plist

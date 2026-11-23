@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "key": "car_name",
+      "type": "text",
+      "default": "Ioniq 5",
+      "max_length": 24,
+      "title": "Car name",
+      "description": "The name the iPhone app shows for this car.",
+      "apply": "live"
+    },
+    {
+      "key": "only_in_park",
+      "type": "toggle",
+      "default": true,
+      "title": "Only in Park",
+      "description": "The phone can change the ambient light only while the car is in P. Letting go of the light always works.",
+      "apply": "live"
+    },
+    {
+      "key": "ambient_at_start",
+      "type": "toggle",
+      "default": false,
+      "title": "Ambient light from the phone at start",
+      "description": "Each time the head unit starts, put on the colour and brightness last saved from the phone. Needs Custom colour in the car's mood-lamp settings.",
+      "apply": "live"
+    },
+    {
+      "key": "ambient_color",
+      "type": "text",
+      "default": "",
+      "pattern": "([0-9a-f]{6})?",
+      "title": "Saved ambient colour",
+      "description": "6 hex digits (rrggbb), set from the phone. Empty: none saved.",
+      "apply": "live"
+    },
+    {
+      "key": "ambient_brightness",
+      "type": "number",
+      "default": 6,
+      "min": 0,
+      "max": 10,
+      "title": "Saved ambient brightness",
+      "description": "0-10, 0 turns the light off.",
+      "apply": "live"
+    }
+  ]
+}
