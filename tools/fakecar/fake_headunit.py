@@ -332,6 +332,7 @@ def main():
     ap.add_argument("--pairing-ttl", type=int, default=300)
     ap.add_argument("--settings", default=SETTINGS_JSON)
     ap.add_argument("--set", action="append", default=[], metavar="KEY=JSON", help="start with a setting value")
+    ap.add_argument("--exit-on-eof", action="store_true", help="stop when stdin closes (tests)")
     ap.add_argument("-v", "--verbose", action="store_true")
     a = ap.parse_args()
 
@@ -373,8 +374,9 @@ def main():
         else:
             print("pair | park yes|no|unknown | block on|off | revoke <id> | devices | quit", flush=True)
     else:
-        # stdin closed (run in the background): keep serving
-        threading.Event().wait()
+        # stdin closed: tests asked to stop; otherwise (run in the background) keep serving
+        if not a.exit_on_eof:
+            threading.Event().wait()
     server.shutdown()
 
 

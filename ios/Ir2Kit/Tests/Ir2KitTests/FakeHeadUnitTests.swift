@@ -4,6 +4,22 @@ import XCTest
 
 /// The client against tools/fakecar/fake_headunit.py (needs python3): pairing, signing,
 /// settings and the ambient light, end to end over HTTP.
+final class LineBuffer: @unchecked Sendable {
+    private let lock = NSLock()
+    private var data = Data()
+
+    func append(_ d: Data) { lock.lock(); data.append(d); lock.unlock() }
+
+    /// the port from the fake's "LISTENING <port>" line, or 0
+    func port() -> Int {
+        lock.lock(); defer { lock.unlock() }
+        for line in String(decoding: data, as: UTF8.self).split(separator: "\n") where line.hasPrefix("LISTENING ") {
+            return Int(line.split(separator: " ")[1]) ?? 0
+        }
+        return 0
+    }
+}
+
 final class FakeHeadUnitTests: XCTestCase {
     static let code = "0123-4567-89AB-CDEF"
     var proc: Process!
@@ -15,30 +31,47 @@ final class FakeHeadUnitTests: XCTestCase {
             .appendingPathComponent("../../../../").standardizedFileURL
         let fake = repo.appendingPathComponent("tools/fakecar/fake_headunit.py").path
         guard FileManager.default.fileExists(atPath: fake) else { throw XCTSkip("no fake head unit at \(fake)") }
+        // a real python3, not /usr/bin/python3: that one is a stub that runs Python as its own child,
+        // which a terminate() wouldn't reach
+        let python = ["/opt/homebrew/bin/python3", "/usr/local/bin/python3", "/usr/bin/python3"]
+            .first { FileManager.default.isExecutableFile(atPath: $0) }
+        guard let python else { throw XCTSkip("no python3") }
         proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        proc.arguments = ["python3", fake, "--host", "127.0.0.1", "--port", "0", "--pair-code", Self.code]
+        proc.executableURL = URL(fileURLWithPath: python)
+        proc.arguments = [fake, "--host", "127.0.0.1", "--port", "0", "--pair-code", Self.code, "--exit-on-eof"]
         let out = Pipe()
         input = Pipe()
         proc.standardOutput = out
         proc.standardInput = input
+        proc.standardError = FileHandle.nullDevice  // never hold the test runner's own output open
+        let lines = LineBuffer()
+        out.fileHandleForReading.readabilityHandler = { h in lines.append(h.availableData) }
         try proc.run()
-        var buf = Data()
         let deadline = Date().addingTimeInterval(15)
-        while port == 0 && Date() < deadline {
-            let chunk = out.fileHandleForReading.availableData
-            if chunk.isEmpty { break }
-            buf.append(chunk)
-            for line in String(decoding: buf, as: UTF8.self).split(separator: "\n") where line.hasPrefix("LISTENING ") {
-                port = Int(line.split(separator: " ")[1]) ?? 0
-            }
+        while port == 0 && Date() < deadline && proc.isRunning {
+            port = lines.port()
+            if port == 0 { Thread.sleep(forTimeInterval: 0.05) }
         }
-        if port == 0 { throw XCTSkip("the fake head unit didn't start (python3 missing?)") }
+        if port == 0 {
+            stopFake()
+            throw XCTSkip("the fake head unit didn't start")
+        }
     }
 
     override func tearDown() {
-        proc?.terminate()
-        proc?.waitUntilExit()
+        stopFake()
+    }
+
+    /// closing stdin ends the fake (--exit-on-eof); terminate, then kill, in case it doesn't
+    func stopFake() {
+        guard let proc else { return }
+        try? input?.fileHandleForWriting.close()
+        let deadline = Date().addingTimeInterval(3)
+        while proc.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
+        if proc.isRunning { proc.terminate() }
+        Thread.sleep(forTimeInterval: 0.2)
+        if proc.isRunning { kill(proc.processIdentifier, SIGKILL) }
+        self.proc = nil
     }
 
     func command(_ s: String) {

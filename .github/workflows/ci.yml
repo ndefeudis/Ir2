@@ -9,6 +9,7 @@ jobs:
   protocol:
     name: Protocol tests (fake head unit + bridge on a JVM)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -20,6 +21,7 @@ jobs:
   mod:
     name: Build the car mod (APK + service)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -47,16 +49,19 @@ jobs:
   ios:
     name: iPhone app (Ir2Kit tests + app build)
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Ir2Kit tests (against the fake head unit)
         working-directory: ios/Ir2Kit
+        timeout-minutes: 10
         run: swift test
       - name: Generate the Xcode project
         working-directory: ios
         run: brew install xcodegen && xcodegen
       - name: Build for the simulator
         working-directory: ios
+        timeout-minutes: 15
         run: |
           xcodebuild -project Ir2.xcodeproj -scheme Ir2 -configuration Debug \
             -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -40

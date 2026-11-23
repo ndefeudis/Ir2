@@ -27,7 +27,8 @@ DEFAULT_CMD = [sys.executable, os.path.join(HERE, "fake_headunit.py")]
 class Server:
     def __init__(self, *extra):
         cmd = shlex.split(os.environ["IR2_SERVER_CMD"]) if os.environ.get("IR2_SERVER_CMD") else DEFAULT_CMD
-        self.proc = subprocess.Popen(cmd + ["--host", "127.0.0.1", "--port", "0", "--pair-code", CODE] + list(extra),
+        self.proc = subprocess.Popen(cmd + ["--host", "127.0.0.1", "--port", "0", "--pair-code", CODE] + list(extra)
+                                     + ([] if os.environ.get("IR2_SERVER_CMD") else ["--exit-on-eof"]),
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
         self.port = None
         deadline = time.time() + 20
